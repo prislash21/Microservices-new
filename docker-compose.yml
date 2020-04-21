@@ -1,0 +1,14 @@
+version : '3'
+
+services:
+  
+
+        createservice: 
+                    image: microappnew:latest
+                    command: gunicorn create_service.py:application --bind 0.0.0.0:8000
+        deleteservice:
+                image: delservice:latest
+                command: gunicorn del_service.py:application --bind 0.0.0.0:8000
+        database:  
+                 image: mongo:4.0.4      
+         
