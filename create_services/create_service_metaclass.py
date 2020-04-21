@@ -105,4 +105,4 @@ if __name__ == "__main__":
     print(bar1.db, bar1.port)
     bar1.db = db
     print(bar2.db, bar2.port)
-    app.run(host='0.0.0.0', port=5000 ,debug=True)
+    app.run(host='0.0.0.0', port=8085 ,debug=True)
