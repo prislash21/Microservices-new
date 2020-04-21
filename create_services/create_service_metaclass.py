@@ -23,24 +23,18 @@ except:
     print("cannot connect to DB")
 
 
-class SingleInstanceMetaClass(type):
-    def __init__(self, name, bases, dic):
-        self.__single_instance = None
-        super().__init__(name, bases, dic)
-
+class Singleton(type):
+    _instances = {}
     def __call__(cls, *args, **kwargs):
-        if cls.__single_instance:
-            return cls.__single_instance
-        single_obj = cls.__new__(cls)
-        single_obj.__init__(*args, **kwargs)
-        cls.__single_instance = single_obj
-        return single_obj
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
 
-
-class Setting(metaclass=SingleInstanceMetaClass):
+class MyClass(metaclass=Singleton):
     def __init__(self):
         self.db = db
         self.port = 27017
+
 
 
 @app.route('/', methods=['POST'])
@@ -94,8 +88,8 @@ def createName(object):
 
 
 if __name__ == "__main__":
-    bar1 = Setting()
-    bar2 = Setting()
+    bar1 = MyClass()
+    bar2 = MyClass()
 
     if id(bar1) == id(bar2):
         print("Singleton works, both variables contain the same instance.")
@@ -105,4 +99,4 @@ if __name__ == "__main__":
     print(bar1.db, bar1.port)
     bar1.db = db
     print(bar2.db, bar2.port)
-    app.run(host='0.0.0.0', port=8085 ,debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
