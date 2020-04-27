@@ -2,18 +2,16 @@ import pymongo
 import json
 from flask import Flask
 from flask import Response, request
-from bson.objectid import ObjectId
-# from flask_jwt_extended import JWTManager
-# from flask_jwt_extended import (jwt_required, create_access_token, get_jwt_identity)
+import prometheus_client as prom
+import random
+import time
 
 app = Flask(__name__)
-# app.config['SECRET_KEY'] = 'THISismyshundorebongoshadharonANDmonorom2ektiSEcretkeyANDeijinishonkBishalditehoy'
-# jwt = JWTManager(app)
-# database config
+req_summary = prom.Summary('python_my_req_example', 'Time spent processing a request')
 
 try:
     mongo = pymongo.MongoClient(
-        host="localhost",
+        host="172.25.0.4",
         port=27017,
         serverSelectionTimeoutMS=1000
     )
@@ -23,19 +21,9 @@ except:
     print("cannot connect to DB")
 
 
-class Singleton(type):
-    _instances = {}
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
-
-class MyClass(metaclass=Singleton):
-    def __init__(self):
-        self.db = db
-        self.port = 27017
-
-
+@req_summary.time()
+def process_request(t):
+   time.sleep(t)
 
 @app.route('/', methods=['POST'])
 def createName():
@@ -61,7 +49,6 @@ def createName():
 
 @app.route('/ping', methods=['GET'])
 def demo():
-    # p("heloo")
 
     return Response(
         response=json.dumps(
@@ -88,15 +75,19 @@ def createName(object):
 
 
 if __name__ == "__main__":
-    bar1 = MyClass()
-    bar2 = MyClass()
 
-    if id(bar1) == id(bar2):
-        print("Singleton works, both variables contain the same instance.")
-    else:
-        print("Singleton failed, variables contain different instances.")
 
-    print(bar1.db, bar1.port)
-    bar1.db = db
-    print(bar2.db, bar2.port)
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    counter = prom.Counter('python_my_counter', 'This is my counter')
+    gauge = prom.Gauge('python_my_gauge', 'This is my gauge')
+    histogram = prom.Histogram('python_my_histogram', 'This is my histogram')
+    summary = prom.Summary('python_my_summary', 'This is my summary')
+    prom.start_http_server(8080)
+
+    while True:
+        counter.inc(random.random())
+        gauge.set(random.random() * 15 - 5)
+        histogram.observe(random.random() * 10)
+        summary.observe(random.random() * 10)
+        process_request(random.random() * 5)
+
+        time.sleep(1)
